@@ -61,11 +61,24 @@ class TokenManager:
             )
             return self._access_token
 
+
 async def write_weight(
     session: ClientSession, tokens: TokenManager, weight_kg: float, iso_time: str
 ) -> None:
-    """POST a weight data point. iso_time must be RFC3339 UTC, e.g. 2026-04-27T08:15:00Z."""
+    """POST a weight data point. iso_time is RFC3339 with offset (e.g. 2026-04-27T18:30:00+02:00)."""
     access = await tokens.get(session)
+
+    dt = datetime.fromisoformat(iso_time)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+
+    # Send local-time RFC3339 (with offset embedded) as physicalTime.
+    # Also send utcOffset separately as the docs require.
+    physical_time_local = dt.strftime("%Y-%m-%dT%H:%M:%S%z")
+    # %z gives +0200; convert to +02:00 for RFC3339 compliance
+    physical_time_local = physical_time_local[:-2] + ":" + physical_time_local[-2:]
+    offset_seconds = int(dt.utcoffset().total_seconds())
+
     payload = {
         "dataSource": {
             "recordingMethod": "ACTIVELY_MEASURED",
@@ -78,13 +91,14 @@ async def write_weight(
         "weight": {
             "weightGrams": round(weight_kg * 1000),
             "sampleTime": {
-                "physicalTime": iso_time,
-                "utcOffset": "0s",  # iso_time is in UTC (Z), so offset is 0
+                "physicalTime": physical_time_local,
+                "utcOffset": f"{offset_seconds}s",
             },
         },
     }
+    log.debug("Payload: %s", json.dumps(payload))
     async with session.post(
-        f"{HEALTH_API}",
+        GOOGLE_HEALTH_API,
         headers={
             "Authorization": f"Bearer {access}",
             "Content-Type": "application/json",
@@ -96,7 +110,11 @@ async def write_weight(
         body = await resp.json()
         if resp.status >= 300:
             raise RuntimeError(f"Health API write failed ({resp.status}): {body}")
-        log.info("Wrote weight=%s kg at %s", weight_kg, iso_time)
+        log.info(
+            "Wrote weight=%s kg, physicalTime=%s, offset=%ds",
+            weight_kg, physical_time_local, offset_seconds,
+        )
+
 
 async def handle_weight(request: web.Request) -> web.Response:
     if request.headers.get("X-Shared-Secret") != os.environ["SHARED_SECRET"]:
