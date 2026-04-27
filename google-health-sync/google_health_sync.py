@@ -99,7 +99,7 @@ async def write_weight(
     }
     log.debug("Payload: %s", json.dumps(payload))
     async with session.post(
-        GOOGLE_HEALTH_API,
+        HEALTH_API,
         headers={
             "Authorization": f"Bearer {access}",
             "Content-Type": "application/json",
