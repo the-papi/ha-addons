@@ -1,6 +1,5 @@
 """HA → Google Health API weight bridge. Listens on HTTP, writes weight to Fitbit account."""
 import asyncio
-import datetime
 import json
 import logging
 import os
@@ -9,6 +8,7 @@ import uuid
 from pathlib import Path
 
 from aiohttp import ClientSession, ClientTimeout, web
+from datetime import datetime, timezone
 
 # --- Config from environment ---
 LISTEN_HOST = os.environ.get("LISTEN_HOST", "127.0.0.1")
