@@ -14,11 +14,15 @@ ports:
   8766/tcp: 8766
 ports_description:
   8766/tcp: HTTP endpoint Home Assistant calls
-map:
-  - share:rw
 options:
+  client_id: ""
+  client_secret: ""
+  refresh_token: ""
   shared_secret: ""
   log_level: info
 schema:
-  shared_secret: str
+  client_id: str
+  client_secret: password
+  refresh_token: password
+  shared_secret: password
   log_level: list(debug|info|warning|error)

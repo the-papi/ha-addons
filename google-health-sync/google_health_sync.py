@@ -10,8 +10,6 @@ from pathlib import Path
 from aiohttp import ClientSession, ClientTimeout, web
 
 # --- Config from environment ---
-CLIENT_SECRET_FILE = Path(os.environ.get("CLIENT_SECRET_FILE", "client_secret.json"))
-TOKEN_FILE = Path(os.environ.get("TOKEN_FILE", "tokens.json"))
 LISTEN_HOST = os.environ.get("LISTEN_HOST", "127.0.0.1")
 LISTEN_PORT = int(os.environ.get("LISTEN_PORT", "8766"))
 SHARED_SECRET = os.environ["SHARED_SECRET"]  # required, set in env
@@ -33,13 +31,9 @@ class TokenManager:
         self._access_token: str | None = None
         self._expires_at: float = 0.0
         self._lock = asyncio.Lock()
-        cfg = json.loads(CLIENT_SECRET_FILE.read_text())
-        block = cfg.get("web") or cfg.get("installed")
-        self._client_id: str = block["client_id"]
-        self._client_secret: str = block["client_secret"]
-
-    def _refresh_token(self) -> str:
-        return json.loads(TOKEN_FILE.read_text())["refresh_token"]
+        self._client_id = os.environ["GOOGLE_CLIENT_ID"]
+        self._client_secret = os.environ["GOOGLE_CLIENT_SECRET"]
+        self._refresh_token = os.environ["GOOGLE_REFRESH_TOKEN"]
 
     async def get(self, session: ClientSession) -> str:
         async with self._lock:
@@ -51,7 +45,7 @@ class TokenManager:
                 data={
                     "client_id": self._client_id,
                     "client_secret": self._client_secret,
-                    "refresh_token": self._refresh_token(),
+                    "refresh_token": self._refresh_token,
                     "grant_type": "refresh_token",
                 },
                 timeout=ClientTimeout(total=10),
@@ -67,7 +61,6 @@ class TokenManager:
                 body.get("expires_in", 3600),
             )
             return self._access_token
-
 
 async def write_weight(
     session: ClientSession, tokens: TokenManager, weight_kg: float, iso_time: str

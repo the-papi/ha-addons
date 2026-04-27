@@ -1,7 +1,8 @@
-"""One-shot OAuth consent flow. Run once, get refresh_token saved to tokens.json."""
+"""One-shot OAuth consent flow. Prints refresh_token to copy into HA add-on config."""
 import asyncio
 import json
 import secrets
+import sys
 import urllib.parse
 import webbrowser
 from pathlib import Path
@@ -9,7 +10,6 @@ from pathlib import Path
 from aiohttp import ClientSession, web
 
 CLIENT_SECRET_FILE = Path("client_secret.json")
-TOKEN_FILE = Path("tokens.json")
 REDIRECT_URI = "http://localhost:8765/callback"
 SCOPES = [
     "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements",
@@ -62,11 +62,12 @@ async def main() -> None:
                 status=400,
             )
 
-        TOKEN_FILE.write_text(json.dumps({"refresh_token": tokens["refresh_token"]}))
-        TOKEN_FILE.chmod(0o600)
+        result["refresh_token"] = tokens["refresh_token"]
+        result["client_id"] = client_id
+        result["client_secret"] = client_secret
         result["done"] = True
         return web.Response(
-            text=f"Got refresh_token. Saved to {TOKEN_FILE}. You can close this tab."
+            text="Success! Refresh token printed in your terminal. You can close this tab."
         )
 
     app = web.Application()
@@ -91,6 +92,15 @@ async def main() -> None:
     while not result.get("done"):
         await asyncio.sleep(0.2)
     await runner.cleanup()
+
+    if rt := result.get("refresh_token"):
+        print("=" * 60, file=sys.stderr)
+        print("Paste these into the Home Assistant add-on configuration:", file=sys.stderr)
+        print("=" * 60, file=sys.stderr)
+        print(f"client_id:     {result['client_id']}")
+        print(f"client_secret: {result['client_secret']}")
+        print(f"refresh_token: {rt}")
+        print("=" * 60, file=sys.stderr)
 
 
 if __name__ == "__main__":
