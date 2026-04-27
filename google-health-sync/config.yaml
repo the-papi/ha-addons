@@ -2,13 +2,10 @@ name: Google Health Sync
 version: "1.0.0"
 slug: google_health_sync
 description: Sync weight from HA → Google Health API → Fitbit
-url: "https://github.com/the-papi/ha-google-health-sync"
+url: "https://github.com/YOURUSER/ha-google-health-sync"
 arch:
   - aarch64
   - amd64
-  - armv7
-  - armhf
-  - i386
 init: false
 startup: services
 boot: auto
@@ -25,4 +22,3 @@ options:
 schema:
   shared_secret: str
   log_level: list(debug|info|warning|error)
-image: null
