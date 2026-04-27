@@ -1,0 +1,12 @@
+[project]
+name = "weight-sync"
+version = "0.1.0"
+description = "HA → Google Health API weight bridge"
+requires-python = ">=3.12"
+dependencies = [
+    "aiohttp>=3.9",
+]
+
+[project.scripts]
+weight-sync = "weight_sync:main"
+weight-sync-auth = "auth:main"
