@@ -99,6 +99,8 @@ async def write_weight(
         log.info("Wrote weight=%s kg at %s", weight_kg, iso_time)
 
 async def handle_weight(request: web.Request) -> web.Response:
+    if request.headers.get("X-Shared-Secret") != os.environ["SHARED_SECRET"]:
+        return web.Response(status=401, text="bad secret")
     try:
         data = await request.json()
         weight = float(data["weight_kg"])
