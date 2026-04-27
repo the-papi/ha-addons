@@ -1,8 +1,8 @@
 name: Google Health Sync
-version: "1.0.0"
+version: "1.2.0"
 slug: google_health_sync
 description: Sync weight from HA → Google Health API → Fitbit
-url: "https://github.com/YOURUSER/ha-google-health-sync"
+url: "https://github.com/the-papi/ha-addons"
 arch:
   - aarch64
   - amd64
@@ -10,19 +10,13 @@ init: false
 startup: services
 boot: auto
 host_network: false
-ports:
-  8766/tcp: 8766
-ports_description:
-  8766/tcp: HTTP endpoint Home Assistant calls
 options:
   client_id: ""
   client_secret: ""
   refresh_token: ""
-  shared_secret: ""
   log_level: info
 schema:
   client_id: str
   client_secret: password
   refresh_token: password
-  shared_secret: password
   log_level: list(debug|info|warning|error)

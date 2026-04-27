@@ -12,7 +12,6 @@ from aiohttp import ClientSession, ClientTimeout, web
 # --- Config from environment ---
 LISTEN_HOST = os.environ.get("LISTEN_HOST", "127.0.0.1")
 LISTEN_PORT = int(os.environ.get("LISTEN_PORT", "8766"))
-SHARED_SECRET = os.environ["SHARED_SECRET"]  # required, set in env
 
 HEALTH_API = "https://health.googleapis.com/v4/users/me/dataTypes/weight/dataPoints"
 TOKEN_URL = "https://oauth2.googleapis.com/token"
@@ -100,8 +99,6 @@ async def write_weight(
         log.info("Wrote weight=%s kg at %s", weight_kg, iso_time)
 
 async def handle_weight(request: web.Request) -> web.Response:
-    if request.headers.get("X-Shared-Secret") != SHARED_SECRET:
-        return web.Response(status=401, text="bad secret")
     try:
         data = await request.json()
         weight = float(data["weight_kg"])

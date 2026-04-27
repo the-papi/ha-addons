@@ -36,7 +36,7 @@ Fitbit account
 On your local machine (any OS with Python 3.12+):
 
 \`\`\`bash
-git clone https://github.com/YOURUSER/ha-google-health-sync
+git clone https://github.com/the-papi/ha-addons
 cd ha-google-health-sync
 uv sync                                      # or: pip install aiohttp
 cp ~/Downloads/client_secret_*.json client_secret.json
